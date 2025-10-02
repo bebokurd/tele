@@ -93,6 +93,30 @@ main {
     border-color: #667eea;
 }
 
+.api-config input.highlight-error {
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.2);
+    animation: shake 0.5s ease-in-out;
+}
+
+.api-config input.saved {
+    border-color: #48bb78;
+    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2);
+    animation: saved-pulse 1s ease-in-out;
+}
+
+@keyframes saved-pulse {
+    0% { box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2); }
+    50% { box-shadow: 0 0 0 6px rgba(72, 187, 120, 0.4); }
+    100% { box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
 .api-config button {
     padding: 10px;
     background: none;
@@ -105,6 +129,17 @@ main {
 
 .api-config button:hover {
     background: #e2e8f0;
+}
+
+#clearKey {
+    background: #fed7d7;
+    color: #e53e3e;
+    padding: 8px 10px;
+}
+
+#clearKey:hover {
+    background: #feb2b2;
+    transform: scale(1.05);
 }
 
 .upload-area {
@@ -269,16 +304,86 @@ main {
 #uploadBtn {
     background: linear-gradient(45deg, #667eea, #764ba2);
     color: white;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 #uploadBtn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 #uploadBtn:disabled {
     background: #cbd5e0;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#uploadBtn.ready {
+    background: linear-gradient(45deg, #48bb78, #38a169);
+    animation: pulse-ready 2s infinite;
+}
+
+#uploadBtn.ready:hover {
+    background: linear-gradient(45deg, #38a169, #2f855a);
+    box-shadow: 0 8px 25px rgba(72, 187, 120, 0.5);
+}
+
+#uploadBtn.uploading {
+    background: linear-gradient(45deg, #ed8936, #dd6b20);
+    cursor: not-allowed;
+    position: relative;
+}
+
+#uploadBtn.uploading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: loading-sweep 1.5s infinite;
+}
+
+#uploadBtn.warning {
+    background: linear-gradient(45deg, #f6ad55, #ed8936);
+    animation: pulse-warning 1.5s infinite;
+}
+
+#uploadBtn.starting {
+    transform: scale(0.95);
+    background: linear-gradient(45deg, #38a169, #2f855a);
+    box-shadow: 0 0 20px rgba(72, 187, 120, 0.8);
+}
+
+#uploadBtn:active {
+    transform: scale(0.98);
+}
+
+.upload-counter {
+    font-size: 0.85em;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+}
+
+@keyframes pulse-ready {
+    0%, 100% { box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3); }
+    50% { box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6); }
+}
+
+@keyframes pulse-warning {
+    0%, 100% { box-shadow: 0 4px 15px rgba(246, 173, 85, 0.3); }
+    50% { box-shadow: 0 6px 20px rgba(246, 173, 85, 0.6); }
+}
+
+@keyframes loading-sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 
 #clearBtn {
@@ -643,4 +748,55 @@ footer {
     .result-details {
         grid-template-columns: 1fr;
     }
+}
+
+/* CORS Fix Button */
+.cors-btn {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cors-btn:hover {
+    background: linear-gradient(135deg, #ff5252, #d32f2f);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.cors-btn.active {
+    background: linear-gradient(135deg, #4caf50, #45a049);
+    cursor: default;
+}
+
+.cors-btn.active:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.cors-btn:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.cors-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.cors-btn:hover:before {
+    left: 100%;
 }
